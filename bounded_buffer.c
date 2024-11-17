@@ -18,7 +18,10 @@ sem_t reader_lock;
 void *writer(void* args) {
   while (1) {
     sem_wait(&writer_lock);
-    if (buffer[writer_i%BUFFER_SIZE] != -1) continue;
+    if (buffer[writer_i%BUFFER_SIZE] != -1) {
+      sem_post(&writer_lock);
+      continue;
+    }
     int temp = writer_i++;
     printf("Producer: ");
     print_arr(buffer, BUFFER_SIZE);
@@ -32,7 +35,10 @@ void *writer(void* args) {
 void *reader(void* args) {
   while(1) {
     sem_wait(&reader_lock);
-    if (buffer[reader_i%BUFFER_SIZE] == -1) continue;
+    if (buffer[reader_i%BUFFER_SIZE] == -1) { 
+      sem_post(&reader_lock);
+      continue;
+    }
     int temp = reader_i++;
     printf("Consumer: ");
     print_arr(buffer, BUFFER_SIZE);
