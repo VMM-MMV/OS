@@ -2,21 +2,21 @@
 
 # Check if the main C file is provided
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 [-d] [-l] [-p] <main.c>"
+    echo "Usage: $0 [-d] [-p] [-e <macro1=value> -e <macro2=value> ...] <main.c>"
     exit 1
 fi
 
 # Initialize options
 debug=false
-link_io=false
 use_pthread=false
+macros=""
 
 # Parse options
 while [[ "$1" == -* ]]; do
     case "$1" in
         -d) debug=true ;;  # Debug flag
-        -l) link_io=true ;;  # Link IO flag
         -p) use_pthread=true ;;  # Enable pthread linking
+        -e) shift; macros="$macros -D$1" ;;  # Accumulate macros
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac
     shift
@@ -31,17 +31,8 @@ bin_dir="bin"
 mkdir -p "$obj_dir"
 mkdir -p "$bin_dir"
 
-# Compile io.c if -l is set
-if $link_io; then
-    gcc -c io.c -o "$obj_dir/io.o"
-    if [ $? -ne 0 ]; then
-        echo "Error compiling io.c"
-        exit 1
-    fi
-fi
-
-# Compile the main C file
-gcc -c "$main_file" -o "$obj_dir/${base_name}.o"
+# Compile the main C file with accumulated macros
+gcc $macros -c "$main_file" -o "$obj_dir/${base_name}.o"
 if [ $? -ne 0 ]; then
     echo "Error compiling $main_file"
     exit 1
@@ -53,12 +44,7 @@ if $use_pthread; then
     link_flags="-pthread"
 fi
 
-if $link_io; then
-    gcc -o "$bin_dir/${base_name}" "$obj_dir/${base_name}.o" "$obj_dir/io.o" -lc $link_flags
-else
-    gcc -o "$bin_dir/${base_name}" "$obj_dir/${base_name}.o" -lc $link_flags
-fi
-
+gcc -o "$bin_dir/${base_name}" "$obj_dir/${base_name}.o" -lc $link_flags
 if [ $? -ne 0 ]; then
     echo "Error linking object files"
     exit 1

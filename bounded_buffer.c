@@ -1,3 +1,7 @@
+#ifndef BUFFER_SIZE
+#define BUFFER_SIZE 10  // Default size if not specified during compilation
+#endif
+
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -6,8 +10,7 @@
 #include <semaphore.h>
 #include <time.h>
 
-#define BUFFER_SIZE 10
-
+// Rest of the code remains exactly the same as before
 int buffer[BUFFER_SIZE] = {0};
 int writer_i = 0;
 int reader_i = 0;
@@ -77,6 +80,8 @@ void *reader(void* args) {
 
 int main() {
     srand(time(NULL));
+    
+    printf("Running with buffer size: %d\n", BUFFER_SIZE);
     
     for (int i = 0; i < BUFFER_SIZE; i++) {
         buffer[i] = -1;
